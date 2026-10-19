@@ -1,43 +1,8 @@
 #!/usr/bin/env python
 
-import yaml
 import argparse
 
-from gwas_sumstats_tools.schema.metadata import SumStatsMetadata
-
-
-class MetadataClient:
-    def __init__(self, meta_dict=None,
-                 in_file=None,
-                 out_file=None) -> None:
-        self.metadata = SumStatsMetadata.construct()
-        self._meta_dict = meta_dict
-        self._in_file = in_file
-        self._out_file = out_file
-
-    def from_file(self) -> None:
-        with open(self._in_file, "r") as fh:
-            self._meta_dict = yaml.safe_load(fh)
-            self.update_metadata(self._meta_dict)
-
-    def to_file(self) -> None:
-        with open(self._out_file, "w") as fh:
-            yaml.dump(self.metadata.dict(exclude_none=True),
-                      fh,
-                      encoding='utf-8')
-
-    def update_metadata(self, data_dict) -> None:
-        """
-        Create a copy of the model and update (no validation occurs)
-        """
-        self._meta_dict.update(data_dict)
-        self.metadata = self.metadata.parse_obj(self._meta_dict)
-
-    def __repr__(self) -> str:
-        """
-        YAML str representation of metadata.
-        """
-        return yaml.dump(self.metadata.dict())
+from gwas_sumstats_tools.interfaces.metadata import MetadataClient
 
 
 def main():
