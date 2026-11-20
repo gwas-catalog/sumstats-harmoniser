@@ -207,6 +207,15 @@ def listify_string(string):
 
 def add_fields_if_missing(df):
     add_column_to_df(df=df, column=RSID)
+    if 'rs_id' in df.columns:
+        current = df[RSID].astype('string').str.strip()
+        alias = df['rs_id'].astype('string').str.strip()
+        missing = current.isna() | current.str.lower().isin(['', 'na', '#na', 'none', 'nan'])
+        alias_missing = alias.isna() | alias.str.lower().isin(['', 'na', '#na', 'none', 'nan'])
+        conflicts = (~missing & ~alias_missing & (current != alias)).fillna(False)
+        if conflicts.any():
+            print(f"Warning: {conflicts.sum()} rows have different rsid and rs_id values; keeping rsid.", file=sys.stderr)
+        df.loc[missing & ~alias_missing, RSID] = alias[missing & ~alias_missing]
     add_column_to_df(df=df, column=CHR_DSET)
     add_column_to_df(df=df, column=BP_DSET)
 
