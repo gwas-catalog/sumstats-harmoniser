@@ -35,11 +35,14 @@ process ftp_copy{
     md5_h_tbi=\$(md5sum<${launchDir}/$GCST/final/${GCST}.h.tsv.gz.tbi | awk '{print \$1}')
 
     cp $tbi \$path
-    cp $running_log  \$path
-    cp $yaml  \$path
+    md5_h_tbi_copied=\$(md5sum<\$path/${GCST}.h.tsv.gz.tbi | awk '{print \$1}')
 
-    if [ \$md5_h_tsv==\$md5_h_tsv_copied ]
+    if [ -n "\$md5_h_tsv" ] && [ -n "\$md5_h_tbi" ] && \
+       [ "\$md5_h_tsv" = "\$md5_h_tsv_copied" ] && \
+       [ "\$md5_h_tbi" = "\$md5_h_tbi_copied" ]
     then 
+         cp $running_log  \$path
+         cp $yaml  \$path
          copy="copied"
          echo "\$md5_h_tsv  ${GCST}.h.tsv.gz" > \$path/md5sum.txt
          echo "\$md5_h_tbi  ${GCST}.h.tsv.gz.tbi" >> \$path/md5sum.txt
