@@ -16,12 +16,22 @@ process concatenate_chr_splits {
 
     shell:
     """
-    head -q -n1 *.merged.hm | head -n1 > harmonised.tsv
+    : > harmonised.tsv
+    for split in *.merged.hm; do
+        if [ -s "\$split" ]; then
+            head -n1 "\$split" > harmonised.tsv
+            break
+        fi
+    done
     for c in \$(seq 1 22) X Y MT; do
     if [ -f chr\$c.merged.hm ]; then
             echo chr\$c.merged.hm
             tail -n+2 chr\$c.merged.hm >> harmonised.tsv
     fi
     done
+    if ! awk 'NR == 2 { found = 1; exit } END { exit !found }' harmonised.tsv; then
+        echo "ERROR: $GCST has no harmonized variant rows" >&2
+        exit 1
+    fi
     """
 }

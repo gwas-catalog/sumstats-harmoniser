@@ -21,6 +21,17 @@ process harmonization {
     shell:
     """
 
+    if ! awk -F '\t' 'NR == 1 { for (i = 1; i <= NF; i++) { if (\$i == "chromosome") chr = 1; if (\$i == "base_pair_location") pos = 1 } } END { exit !(chr && pos) }' $merged; then
+        echo "ERROR: missing or invalid chromosome input header: $merged" >&2
+        exit 1
+    fi
+    if ! awk 'NR == 2 { found = 1; exit } END { exit !found }' $merged; then
+        echo "INFO: $GCST $chrom has no variants; skipping chromosome harmonization" >&2
+        : > ${chrom}.merged.hm
+        printf 'hm_code\tcount\tdescription\n' | gzip -c > ${chrom}.merged.log.tsv.gz
+        exit 0
+    fi
+
     coordinate_system=\$(grep coordinate_system $yaml | awk -F ":" '{print \$2}' | tr -d "[:blank:]" )
     if test -z "\$coordinate_system"; then coordinate="1-based"; else coordinate=\$coordinate_system; fi
 
